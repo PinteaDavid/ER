@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Rulează (CodeLLDB)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/descompunere",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Compilează"
+    },
+    {
+      "name": "Rulează (C/C++ Microsoft)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/descompunere",
+      "cwd": "${workspaceFolder}",
+      "MIMode": "lldb",
+      "externalConsole": false,
+      "preLaunchTask": "Compilează"
+    }
+  ]
+}
