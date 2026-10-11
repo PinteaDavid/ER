@@ -58,16 +58,18 @@ metoda arborelui, eticheta nodului (ex. `114`) și adâncimea lui.
 | `src/geometry.cpp` | Geometrie: punct în poligon, distanțe segment–segment, celulă în poligon, triangulare. |
 | `src/ui.cpp`, `src/main.cpp` | Interfața grafică. |
 
-Algoritmul metodei arborelui (`QuadPlanner::step`):
+Algoritmul metodei arborelui (`QuadPlanner::step`), la fiecare iterație:
 
-1. Calculează descompunerea celulară până la o anumită rezoluție (începe cu celula rădăcină 0);
+1. Pornește de la celula rădăcină 0 (tot spațiul de lucru);
 2. Identifică celulele care conțin configurațiile inițială și finală;
 3. Caută o secvență de celule Libere/Mixte între cele două celule;
 4. Dacă nu există nicio secvență → nu există drum;
-5. Dacă există o secvență de celule **Libere** → drum găsit;
-6. Dacă s-a atins rezoluția limită (înălțimea arborelui) → eșec; celulele mixte rămase sunt considerate ocupate;
-7. Descompune în continuare celulele Mixte;
-8. Revine la pasul 2.
+5. Cât timp nu s-a atins înălțimea arborelui aleasă → descompune toate celulele Mixte în câte 4 și revine la pasul 2;
+6. La înălțimea arborelui: dacă există o secvență de celule **Libere** → drum găsit, altfel eșec
+   (celulele mixte rămase sunt considerate ocupate).
+
+Spre deosebire de varianta din curs, care se oprește la primul canal de celule libere, aici
+descompunerea continuă mereu până la înălțimea aleasă și abia apoi se calculează drumul.
 
 Jurnalul din dreapta afișează fiecare pas.
 

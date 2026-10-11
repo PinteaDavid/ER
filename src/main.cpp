@@ -255,7 +255,7 @@ static void leftPanel(App& a, float H) {
     y += ui::TextWrapped(a.method == 0 ? "Spațiul de lucru e împărțit în celule identice. Celulele Libere formează "
                                          "canalul; celulele Ocupate și Mixte sunt interzise."
                                        : "Celulele Mixte se descompun recursiv în 4 celule egale (arbore 2^m, m = 2), "
-                                         "până la găsirea unui canal de celule Libere.",
+                                         "până la înălțimea arborelui aleasă; apoi se caută canalul de celule Libere.",
                          x, y, w, 13, T.textDim) + 14;
 
     ui::SectionTitle("PARAMETRI", x, y);

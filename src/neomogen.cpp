@@ -1,14 +1,14 @@
 // neomogen.cpp
 //
-// Algoritmul (cap. 7.8.2.2):
-//  1. Calculeaza descompunerea celulara pana la o anumita rezolutie;
+// Algoritmul (cap. 7.8.2.2), varianta folosita aici:
+//  1. Porneste de la celula radacina (tot spatiul de lucru);
 //  2. Identifica celulele care contin configuratiile initiala si finala;
 //  3. Cauta o secventa de celule Libere/Mixte intre cele doua celule;
 //  4. Daca nu exista nicio secventa -> iesire, nu exista drum;
-//  5. Daca exista o secventa de celule Libere -> iesire, drum gasit;
-//  6. Daca s-a atins rezolutia limita -> iesire, esec;
-//  7. Descompune in continuare celulele Mixte;
-//  8. Salt la 2.
+//  7. Daca nu s-a atins inaltimea arborelui -> descompune toate celulele Mixte, salt la 2;
+//  5/6. La inaltimea arborelui: daca exista o secventa de celule Libere -> drum gasit, altfel esec.
+// Spre deosebire de varianta din curs (care se opreste la primul canal liber), descompunerea
+// continua mereu pana la inaltimea aleasa, iar drumul se calculeaza la final.
 #include "neomogen.h"
 
 #include <algorithm>
@@ -216,7 +216,27 @@ void QuadPlanner::step() {
     }
     log.push_back("Pasul 3: secvență de celule L/M găsită (" + std::to_string(channelLM.size()) + " celule).");
 
-    // Pasul 5
+    // Pasul 7: descompunem toate celulele Mixte pana la inaltimea arborelui aleasa
+    std::vector<int> cand;
+    for (int id : leaves)
+        if (nodes[id].st == CellState::Mixed && nodes[id].depth < maxDepth_) cand.push_back(id);
+
+    if (!cand.empty()) {
+        if (search(false, adj, channel))
+            log.push_back("Pasul 5: există deja un canal de celule Libere, dar continui până la înălțimea " +
+                          std::to_string(maxDepth_) + ".");
+        else
+            log.push_back("Pasul 5: încă nu există un canal doar din celule Libere.");
+        channel.clear();  // drumul se calculeaza doar la final
+        toSplit = cand;
+        message = "Iterația " + std::to_string(iteration) + ": " + std::to_string(cand.size()) +
+                  " celule Mixte vor fi descompuse.";
+        log.push_back("Pasul 7: " + std::to_string(cand.size()) + " celule Mixte marcate pentru descompunere → pasul 2.");
+        addTime();
+        return;
+    }
+
+    // Pasul 6: inaltimea arborelui a fost atinsa -> calculam drumul final
     if (search(false, adj, channel)) {
         path.clear();
         path.push_back(scene_.start);
@@ -226,29 +246,13 @@ void QuadPlanner::step() {
         pathLen = pathLength(path);
         done = success = true;
         channelLM.clear();
-        message = "Drum găsit: canal de " + std::to_string(channel.size()) + " celule Libere (iterația " +
-                  std::to_string(iteration) + ").";
-        log.push_back("Pasul 5: există o secvență de celule Libere → drum găsit.");
-        addTime();
-        return;
-    }
-    log.push_back("Pasul 5: încă nu există un canal doar din celule Libere.");
-
-    // Pasul 6 / 7: toate celulele Mixte care nu au atins inca rezolutia limita
-    std::vector<int> cand;
-    for (int id : leaves)
-        if (nodes[id].st == CellState::Mixed && nodes[id].depth < maxDepth_) cand.push_back(id);
-
-    if (cand.empty()) {
+        message = "Drum găsit: canal de " + std::to_string(channel.size()) + " celule Libere (adâncime " +
+                  std::to_string(maxDepthReached) + ", iterația " + std::to_string(iteration) + ").";
+        log.push_back("Pasul 5: înălțimea arborelui atinsă, există o secvență de celule Libere → drum găsit.");
+    } else {
         finishFail("Pasul 6: rezoluția limită atinsă (înălțimea arborelui = " + std::to_string(maxDepth_) +
-                   ") → eșec. Celulele mixte rămase sunt considerate ocupate.");
-        addTime();
-        return;
+                   ") fără canal de celule Libere → eșec. Celulele mixte rămase sunt considerate ocupate.");
     }
-    toSplit = cand;
-    message = "Iterația " + std::to_string(iteration) + ": " + std::to_string(cand.size()) +
-              " celule Mixte vor fi descompuse.";
-    log.push_back("Pasul 7: " + std::to_string(cand.size()) + " celule Mixte marcate pentru descompunere → pasul 2.");
     addTime();
 }
 
