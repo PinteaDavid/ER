@@ -1,0 +1,4 @@
+# fisiere generate la compilare - nu se pun pe Git
+build/
+_build_vechi*/
+.DS_Store
